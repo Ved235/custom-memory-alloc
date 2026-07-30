@@ -72,6 +72,5 @@ StackAllocator::~StackAllocator()
     if (start != nullptr)
     {
         munmap(start, end - start);
-        cout << "Memory deallocated" << endl;
     }
 }

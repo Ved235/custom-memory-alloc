@@ -62,6 +62,5 @@ PoolAllocator::~PoolAllocator()
     if (start != nullptr)
     {
         munmap(start, totalSize);
-        cout << "Memory deallocated" << endl;
     }
 };

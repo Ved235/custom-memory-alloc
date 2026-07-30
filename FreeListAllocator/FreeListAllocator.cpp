@@ -15,7 +15,7 @@ FreeListAllocator::FreeListAllocator(size_t size) : freeList(nullptr), totalSize
     freeList = reinterpret_cast<FreeBlock *>(start);
     freeList->size = totalSize;
     freeList->next = nullptr;
-    cout << "FreeListAllocator started at: " << static_cast<void *>(start) << endl;
+    //cout << "FreeListAllocator started at: " << static_cast<void *>(start) << endl;
 }
 
 void *FreeListAllocator::Allocate(size_t size)
