@@ -20,7 +20,7 @@ constexpr unsigned RNG_SEED = 0xABCD1234;
 std::vector<size_t> allocSizes;
 std::vector<size_t> deallocIndices;
 
-inline void touch(void *p, size_t sz)
+inline void touch(void *p)
 {
     if (!p)
         return;
@@ -31,13 +31,13 @@ inline void touch(void *p, size_t sz)
 template <typename Alloc>
 uint64_t workload_mixed(Alloc &alloc)
 {
-    std::vector<void *> ptrs(N);
+    std::vector<void *> ptrs(2 * N);
     uint64_t ops = 0;
 
     for (size_t i = 0; i < N; ++i)
     {
         ptrs[i] = alloc.Allocate(allocSizes[i]);
-        touch(ptrs[i], allocSizes[i]);
+        touch(ptrs[i]);
         ++ops;
     }
 
@@ -51,8 +51,8 @@ uint64_t workload_mixed(Alloc &alloc)
     for (size_t i = 0; i < N; ++i)
     {
         size_t sz = allocSizes[N + i];
-        void *p = alloc.Allocate(sz);
-        touch(p, sz);
+        ptrs[N + i] = alloc.Allocate(sz);
+        touch(ptrs[N + i]);
         ++ops;
     }
 
@@ -73,7 +73,7 @@ uint64_t workload_linear(LinearAllocator &alloc)
 
     for (size_t i = 0; i < N; ++i)
     {
-        touch(alloc.Allocate(allocSizes[i]), allocSizes[i]);
+        touch(alloc.Allocate(allocSizes[i]));
         ++ops;
     }
 
@@ -82,7 +82,7 @@ uint64_t workload_linear(LinearAllocator &alloc)
 
     for (size_t i = 0; i < N; ++i)
     {
-        touch(alloc.Allocate(allocSizes[N + i]), allocSizes[N + i]);
+        touch(alloc.Allocate(allocSizes[N + i]));
         ++ops;
     }
 
@@ -100,7 +100,7 @@ uint64_t workload_stack(StackAllocator &alloc)
     for (size_t i = 0; i < N; ++i)
     {
         void *p = alloc.Allocate(allocSizes[i]);
-        touch(p, allocSizes[i]);
+        touch(p);
         stack.push_back(p);
         ++ops;
     }
@@ -115,7 +115,7 @@ uint64_t workload_stack(StackAllocator &alloc)
     for (size_t i = 0; i < N; ++i)
     {
         void *p = alloc.Allocate(allocSizes[N + i]);
-        touch(p, allocSizes[N + i]);
+        touch(p);
         ++ops;
     }
 
@@ -126,13 +126,13 @@ uint64_t workload_stack(StackAllocator &alloc)
 
 uint64_t workload_pool(PoolAllocator &alloc)
 {
-    std::vector<void *> ptrs(N, nullptr);
+    std::vector<void *> ptrs(2 * N, nullptr);
     uint64_t ops = 0;
 
     for (size_t i = 0; i < N; ++i)
     {
         ptrs[i] = alloc.Allocate();
-        touch(ptrs[i], 64);
+        touch(ptrs[i]);
         ++ops;
     }
 
@@ -145,8 +145,8 @@ uint64_t workload_pool(PoolAllocator &alloc)
 
     for (size_t i = 0; i < N; ++i)
     {
-        void *p = alloc.Allocate();
-        touch(p, 64);
+        ptrs[N + i] = alloc.Allocate();
+        touch(ptrs[N + i]);
         ++ops;
     }
 

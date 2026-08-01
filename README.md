@@ -23,10 +23,11 @@ Memory is touched after each allocation to force OS page commits. Results are re
 
 | Allocator   | MOPS   | Time (µs) | Total Ops |
 |-------------|--------|-----------|-----------|
-| Pool (64B)  | 121.79 | 246.33    | 30,000    |
-| Linear      | 68.34  | 292.67    | 20,002    |
-| Stack       | 34.28  | 656.33    | 22,501    |
-| Standard    | 15.81  | 1897.33   | 30,000    |
-| FreeList    | 1.02   | 29432.67  | 30,000    |
+| Pool (64B)  | 120.97 | 330.67    | 40,000    |
+| Linear      | 76.25  | 262.33    | 20,002    |
+| Stack       | 36.21  | 621.33    | 22,501    |
+| Standard    | 17.54  | 2280.67   | 40,000    |
+| FreeList    | 1.28   | 31227.33  | 40,000    |
+
 
 *Note: Pool uses 64-byte fixed blocks. Linear and Stack workloads include bulk `Reset()` operations rather than individual deallocations*
