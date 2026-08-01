@@ -4,17 +4,15 @@
 #include "PoolAllocator.h"
 using namespace std;
 
-PoolAllocator::PoolAllocator(size_t totalSize, size_t blockSize) : totalSize(totalSize), blockSize(blockSize), start(nullptr), freeList(nullptr)
+PoolAllocator::PoolAllocator(size_t totalSize, size_t blockSize) : totalSize(totalSize), blockSize(blockSize), offset(0), start(nullptr), freeList(nullptr)
 {
-    if(blockSize <= sizeof(FreeBlock))
-    {
-        cout << "Block size must be greater than " << sizeof(FreeBlock) << " bytes" << endl;
-        throw std::invalid_argument("Block size too small");
-    }
     if (blockSize % alignof(std::max_align_t) != 0)
     {
         this->blockSize += alignof(std::max_align_t) - (blockSize % alignof(std::max_align_t));
-        cout << "Block size adjusted to " << this->blockSize << " for alignment" << endl;
+    }
+    if (blockSize <= sizeof(FreeBlock) || blockSize > totalSize)
+    {
+        throw std::invalid_argument("Block size is invalid");
     }
     start = static_cast<char *>(mmap(nullptr, totalSize, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
     if (start == MAP_FAILED)
@@ -22,32 +20,25 @@ PoolAllocator::PoolAllocator(size_t totalSize, size_t blockSize) : totalSize(tot
         cout << "Memory allocation failed" << endl;
         throw std::bad_alloc();
     }
-    freeList = reinterpret_cast<FreeBlock *>(start);
-    size_t numBlocks = totalSize / this->blockSize;
-    for (size_t i = 0; i < numBlocks; ++i)
-    {
-        FreeBlock *block = reinterpret_cast<FreeBlock *>(start + i * this->blockSize);
-        if (i == numBlocks - 1)
-        {
-            block->next = nullptr;
-        }
-        else
-        {
-            block->next = reinterpret_cast<FreeBlock *>(start + (i + 1) * this->blockSize);
-        }
-    }
 };
 
 void *PoolAllocator::Allocate()
 {
     if (freeList == nullptr)
     {
-        cout << "Insufficient memory" << endl;
-        return nullptr;
+        char *address = start + offset * blockSize;
+        if (address + blockSize > start + totalSize)
+        {
+            cout << "Insufficient memory" << endl;
+            return nullptr;
+        }
+        ++offset;
+        return address;
     }
+
     FreeBlock *block = freeList;
     freeList = freeList->next;
-    return block;
+    return reinterpret_cast<void *>(block);
 };
 
 void PoolAllocator::Deallocate(void *ptr)

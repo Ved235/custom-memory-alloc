@@ -49,7 +49,7 @@ void LinearAllocatorBenchmark()
     for (int i = 0; i < trials; ++i)
     {
         pointers[i] = allocator.Allocate(allocationSize);
-        sink = pointers[i]; // Prevent optimization
+        sink = pointers[i];
     }
 
     allocator.Reset();
@@ -63,7 +63,7 @@ void StandardAllocatorBenchmark()
     for (int i = 0; i < trials; ++i)
     {
         pointers[i] = ::operator new(allocationSize);
-        sink = pointers[i]; // Prevent optimization
+        sink = pointers[i];
     }
 
     for (int i = 0; i < trials; ++i)

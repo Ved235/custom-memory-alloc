@@ -19,18 +19,17 @@ StackAllocator::StackAllocator(size_t size) : start(nullptr), current(nullptr), 
 void *StackAllocator::Allocate(size_t bytes)
 {
     constexpr size_t alignment = alignof(std::max_align_t);
-    uintptr_t afterHeaderAddress = reinterpret_cast<uintptr_t>(current) + sizeof(Header);
-    int remainder = afterHeaderAddress % alignment;
-    uintptr_t alignedAddress;
+    char *afterHeaderAddress = current + sizeof(Header);
+    size_t remainder = reinterpret_cast<uintptr_t>(afterHeaderAddress) % alignment;
+    char *alignedPtr;
     if (remainder != 0)
     {
-        alignedAddress = afterHeaderAddress + (alignment - remainder);
+        alignedPtr = afterHeaderAddress + (alignment - remainder);
     }
     else
     {
-        alignedAddress = afterHeaderAddress;
+        alignedPtr = afterHeaderAddress;
     }
-    char *alignedPtr = reinterpret_cast<char *>(alignedAddress);
 
     if (alignedPtr + bytes > end)
     {
@@ -53,7 +52,7 @@ void StackAllocator::Free(void *ptr)
         return;
     }
 
-    Header *header = reinterpret_cast<Header *>(static_cast<char *>(ptr) - sizeof(Header));
+    Header *header = reinterpret_cast<Header *>(reinterpret_cast<char *>(ptr) - sizeof(Header));
     current = header->previous;
 }
 
