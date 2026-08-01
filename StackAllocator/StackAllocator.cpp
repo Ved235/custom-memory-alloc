@@ -19,22 +19,13 @@ StackAllocator::StackAllocator(size_t size) : start(nullptr), current(nullptr), 
 void *StackAllocator::Allocate(size_t bytes)
 {
     constexpr size_t alignment = alignof(std::max_align_t);
-    char *afterHeaderAddress = current + sizeof(Header);
-    size_t remainder = reinterpret_cast<uintptr_t>(afterHeaderAddress) % alignment;
-    char *alignedPtr;
-    if (remainder != 0)
-    {
-        alignedPtr = afterHeaderAddress + (alignment - remainder);
-    }
-    else
-    {
-        alignedPtr = afterHeaderAddress;
-    }
+    uintptr_t afterHeaderAddress = reinterpret_cast<uintptr_t>(current) + sizeof(Header);
+    char *alignedPtr = reinterpret_cast<char *>((afterHeaderAddress + alignment - 1) & ~(alignment - 1));
 
     if (alignedPtr + bytes > end)
     {
         cout << "Insufficient memory" << endl;
-        return nullptr;
+        throw std::bad_alloc();
     }
 
     Header *header = reinterpret_cast<Header *>(alignedPtr - sizeof(Header));

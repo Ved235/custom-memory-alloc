@@ -30,7 +30,7 @@ void *PoolAllocator::Allocate()
         if (address + blockSize > start + totalSize)
         {
             cout << "Insufficient memory" << endl;
-            return nullptr;
+            throw std::bad_alloc();
         }
         ++offset;
         return address;

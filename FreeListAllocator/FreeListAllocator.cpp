@@ -26,19 +26,11 @@ void *FreeListAllocator::Allocate(size_t size)
     while (it != nullptr)
     {
         uintptr_t blockAddress = reinterpret_cast<uintptr_t>(it) + sizeof(AllocatedBlock);
-        uintptr_t remainder = blockAddress % alignment;
-        uintptr_t alignedAddress;
-        if (remainder != 0)
-        {
-            alignedAddress = blockAddress + (alignment - remainder);
-        }
-        else
-        {
-            alignedAddress = blockAddress;
-        }
+        uintptr_t alignedAddress = (blockAddress + alignment - 1) & ~(alignment - 1);
         size_t consumed = (alignedAddress - reinterpret_cast<uintptr_t>(it)) + size;
         if (it->size >= consumed)
         {
+            FreeBlock *nextBlock = it->next;
             size_t remaining = it->size - consumed;
             if (remaining >= sizeof(AllocatedBlock) + alignment)
             {
@@ -47,7 +39,7 @@ void *FreeListAllocator::Allocate(size_t size)
                 header->padding = alignedAddress - blockAddress;
                 FreeBlock *newBlock = reinterpret_cast<FreeBlock *>(alignedAddress + size);
                 newBlock->size = remaining;
-                newBlock->next = it->next;
+                newBlock->next = nextBlock;
 
                 if (!prev)
                 {
@@ -66,11 +58,11 @@ void *FreeListAllocator::Allocate(size_t size)
                 header->padding = alignedAddress - blockAddress;
                 if (!prev)
                 {
-                    freeList = it->next;
+                    freeList = nextBlock;
                 }
                 else
                 {
-                    prev->next = it->next;
+                    prev->next = nextBlock;
                 }
                 return reinterpret_cast<void *>(alignedAddress);
             }
@@ -106,14 +98,16 @@ void FreeListAllocator::Free(void *ptr)
         freeList = blockToFree;
     }
 
-    uintptr_t end = reinterpret_cast<uintptr_t>(blockToFree) + blockToFree->size;
-    if (curr && reinterpret_cast<uintptr_t>(curr) == end)
+    uintptr_t fStart = reinterpret_cast<uintptr_t>(blockToFree);
+    uintptr_t fEnd = fStart + blockToFree->size;
+
+    if (curr && reinterpret_cast<uintptr_t>(curr) == fEnd)
     {
         blockToFree->size += curr->size;
         blockToFree->next = curr->next;
     }
 
-    if (prev && reinterpret_cast<uintptr_t>(prev) + prev->size == reinterpret_cast<uintptr_t>(blockToFree))
+    if (prev && reinterpret_cast<uintptr_t>(prev) + prev->size == fStart)
     {
         prev->size += blockToFree->size;
         prev->next = blockToFree->next;

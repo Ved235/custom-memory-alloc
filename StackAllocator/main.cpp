@@ -2,13 +2,14 @@
 #include "StackAllocator.h"
 using namespace std;
 
-int main(){
-    size_t size = 128; 
+int main()
+{
+    size_t size = 128;
     StackAllocator allocator(size);
-    
-    void* ptr1 = allocator.Allocate(17);
+
+    void *ptr1 = allocator.Allocate(17);
     cout << "New allocated memory: " << ptr1 << endl;
-    void* ptr2 = allocator.Allocate(8);
+    void *ptr2 = allocator.Allocate(8);
     cout << "New allocated memory: " << ptr2 << endl;
     cout << "Allocated size: " << allocator.GetAllocatedSize() << " bytes" << endl;
 

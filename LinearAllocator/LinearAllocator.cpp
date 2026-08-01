@@ -20,21 +20,11 @@ void *LinearAllocator::Allocate(size_t bytes)
 {
     constexpr size_t alignment = alignof(std::max_align_t);
     uintptr_t currentAddress = reinterpret_cast<uintptr_t>(current);
-    int remainder = currentAddress % alignment;
-    uintptr_t alignedAddress;
-    if (remainder != 0)
-    {
-        alignedAddress = currentAddress + (alignment - remainder);
-    }
-    else
-    {
-        alignedAddress = currentAddress;
-    }
-    char *alignedPtr = reinterpret_cast<char *>(alignedAddress);
+    char *alignedPtr = reinterpret_cast<char *>((currentAddress + alignment - 1) & ~(alignment - 1));
     if (alignedPtr + bytes > end)
     {
         cout << "Insufficient memory" << endl;
-        return nullptr;
+        throw std::bad_alloc();
     }
     current = alignedPtr + bytes;
     return alignedPtr;
