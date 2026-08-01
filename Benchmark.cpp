@@ -94,7 +94,7 @@ uint64_t workload_linear(LinearAllocator &alloc)
 uint64_t workload_stack(StackAllocator &alloc)
 {
     std::vector<void *> stack;
-    stack.reserve(N);
+    stack.reserve(2 * N);
     uint64_t ops = 0;
 
     for (size_t i = 0; i < N; ++i)
